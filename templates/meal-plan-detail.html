@@ -2,131 +2,147 @@
 {% block title %}COOKISTRY - {{ meal_plan.PlanName or 'Meal Plan' }}{% endblock %}
 {% block content %}
 <main class="recipe-detail-page">
-    <article class="recipe-content-wrapper">
-        <!-- Meal Plan Hero Section -->
-        <section class="recipe-hero">
-            <div class="recipe-image-container">
-                <img src="{{ url_for('static', filename=meal_plan.PlanImagePath) }}" alt="{{ meal_plan.PlanName or 'Meal Plan' }}" class="recipe-main-image">
-                <h1 class="recipe-title-overlay">{{ meal_plan.PlanName or 'Meal Plan' }}</h1>
-            </div>
-        </section>
+  <article class="recipe-content-wrapper">
+    <!-- Meal Plan Hero Section -->
+    <section class="recipe-hero">
+      <div class="recipe-image-container">
+        <img src="{{ url_for('static', filename=meal_plan.PlanImagePath) }}"
+          alt="{{ meal_plan.PlanName or 'Meal Plan' }}" class="recipe-main-image">
+        <h1 class="recipe-title-overlay">{{ meal_plan.PlanName or 'Meal Plan' }}</h1>
+      </div>
+    </section>
 
-        <!-- Meal Plan Meta Info -->
-        <section class="recipe-meta-info">
-            <div class="author-info">
-                {% if meal_plan.user %}
-                <a href="{{ url_for('profile.user_profile', id=meal_plan.user.UserID) }}">
-                    <img src="{{ url_for('static', filename=meal_plan.user.ProfilePicturePath) }}" alt="{{ meal_plan.user.UserName }}" class="author-avatar">
-                    <span class="author-name">{{ meal_plan.user.UserName }}</span>
-                </a>
-                {% endif %}
-            </div>
-            <div class="publish-date">
-                <i class="fas fa-calendar-alt"></i> Created: {{ meal_plan.PlanDate.strftime('%B %d, %Y') }}
-            </div>
-            <div class="recipe-quick-stats">
-                <span><i class="fas fa-tag"></i> Type: {{ meal_plan.PlanType }}</span>
-            </div>
-        </section>
+    <!-- Meal Plan Meta Info -->
+    <section class="recipe-meta-info">
+      <div class="author-info">
+        {% if meal_plan.user %}
+        <a href="{{ url_for('profile.user_profile', id=meal_plan.user.UserID) }}">
+          <img src="{{ url_for('static', filename=meal_plan.user.ProfilePicturePath) }}"
+            alt="{{ meal_plan.user.UserName }}" class="author-avatar">
+          <span class="author-name">{{ meal_plan.user.UserName }}</span>
+        </a>
+        {% endif %}
+      </div>
+      <div class="publish-date">
+        <i class="fas fa-calendar-alt"></i> Created: {{ meal_plan.PlanDate.strftime('%B %d, %Y') }}
+      </div>
+      <div class="recipe-quick-stats">
+        <span><i class="fas fa-tag"></i> Type: {{ meal_plan.PlanType }}</span>
+      </div>
+    </section>
 
-        <div class="recipe-details-grid">
-            <section class="recipe-description-section">
-                <h2><i class="fas fa-info-circle"></i> Description</h2>
-                <p>{{ meal_plan.PlanDescription or 'No description.' }}</p>
-            </section>
-            <section class="recipe-ingredients-section">
-                <h2><i class="fas fa-list"></i> Recipes in this Plan</h2>
-                <ul class="ingredients-list">
-                    {% for recipe in recipes %}
-                    <li><a href="{{ url_for('recipe.recipe_detail_name_id', name=slugify(recipe.RecipeName), recipe_id=recipe.RecipeID) }}">{{ recipe.RecipeName }}</a></li>
-                    {% else %}
-                    <li>No recipes in this meal plan.</li>
-                    {% endfor %}
-                </ul>
-            </section>
-        </div>
+    <div class="recipe-details-grid">
+      <section class="recipe-description-section">
+        <h2><i class="fas fa-info-circle"></i> Description</h2>
+        <p>{{ meal_plan.PlanDescription or 'No description.' }}</p>
+      </section>
+      <section class="recipe-ingredients-section">
+        <h2><i class="fas fa-list"></i> Recipes in this Plan</h2>
+        <ul class="ingredients-list">
+          {% for recipe in recipes %}
+          <li><a
+              href="{{ url_for('recipe.recipe_detail_name_id', name=slugify(recipe.RecipeName), recipe_id=recipe.RecipeID) }}">{{
+              recipe.RecipeName }}</a></li>
+          {% else %}
+          <li>No recipes in this meal plan.</li>
+          {% endfor %}
+        </ul>
+      </section>
+    </div>
 
-        <!-- Reviews Section -->
-        <section class="recipe-reviews-section modern-reviews-section">
-            <h2><i class="fas fa-star-half-alt"></i> Ratings & Reviews</h2>
-            <div class="current-rating-summary">
-                {% set avg = reviews|map(attribute='Score')|list %}
-                <span class="average-rating">{{ avg|length and (avg|sum / avg|length)|round(1) or 'N/A' }} <i class="fas fa-star"></i></span>
-                <span class="total-reviews">(Based on {{ avg|length }} Reviews)</span>
+    <!-- Reviews Section -->
+    <section class="recipe-reviews-section modern-reviews-section">
+      <h2><i class="fas fa-star-half-alt"></i> Ratings & Reviews</h2>
+      <div class="current-rating-summary">
+        {% set avg = reviews|map(attribute='Score')|list %}
+        <span class="average-rating">{{ avg|length and (avg|sum / avg|length)|round(1) or 'N/A' }} <i class="fas fa-star"></i></span>
+        <span class="total-reviews">(Based on {{ avg|length }} Reviews)</span>
+      </div>
+      {% set user_review = None %}
+      {% if session['user_id'] %}
+      {% for review in reviews %}
+      {% if review.UserID == session['user_id'] and not user_review %}
+      {% set user_review = review %}
+      {% endif %}
+      {% endfor %}
+      {% endif %}
+      <div class="existing-reviews-list modern-reviews-list">
+        <h4>What Others Are Saying:</h4>
+        {% for review in reviews %}
+        <div class="review-item modern-review-item">
+          <div class="review-item-header modern-review-header">
+            <div class="reviewer-info modern-reviewer-info">
+              <img src="{{ url_for('static', filename=review.user.ProfilePicturePath) }}" alt="{{ review.user.UserName }}" class="reviewer-avatar modern-reviewer-avatar">
+              <span class="reviewer-name modern-reviewer-name">{{ review.user.UserName }}</span>
             </div>
-            {% set user_review = None %}
-            {% if session['user_id'] %}
-              {% for review in reviews %}
-                {% if review.UserID == session['user_id'] and not user_review %}
-                  {% set user_review = review %}
-                {% endif %}
+            <div class="review-rating modern-review-rating">
+              {% for i in range(1, 6) %}
+              <i class="fa-star {% if review.Score >= i %}fas{% else %}far{% endif %}"></i>
               {% endfor %}
-            {% endif %}
-            <div class="existing-reviews-list modern-reviews-list">
-                <h4>What Others Are Saying:</h4>
-                {% for review in reviews %}
-                <div class="review-item modern-review-item">
-                    <div class="review-item-header modern-review-header">
-                        <div class="reviewer-info modern-reviewer-info">
-                            <img src="{{ url_for('static', filename=review.user.ProfilePicturePath) }}" alt="{{ review.user.UserName }}" class="reviewer-avatar modern-reviewer-avatar">
-                            <span class="reviewer-name modern-reviewer-name">{{ review.user.UserName }}</span>
-                        </div>
-                        <div class="review-rating modern-review-rating">
-                            {% for i in range(1, 6) %}
-                            <i class="fa-star {% if review.Score >= i %}fas{% else %}far{% endif %}"></i>
-                            {% endfor %}
-                            <span class="rating-date modern-rating-date">({{ review.ReviewDate.strftime('%B %d, %Y') }})</span>
-                        </div>
-                    </div>
-                    <p class="review-comment modern-review-comment">{{ review.Comment }}</p>
-                    {% if session['user_id'] and review.UserID == session['user_id'] %}
-                    <span class="your-review-label modern-your-review-label">(Your Review)</span>
-                    {% endif %}
-                    {% if logged_in_user_type == 'Admin' or review.UserID == session['user_id'] %}
-                    <form method="POST" action="{{ url_for('meals.delete_mealplan_review', review_id=review.ReviewID) }}" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this review?');">
-                        <button type="submit" class="btn btn-xs btn-danger">Delete</button>
-                    </form>
-                    {% endif %}
-                </div>
-                {% endfor %}
-                {% if reviews|length == 0 %}
-                <p class="modern-no-reviews">No reviews yet.</p>
-                {% endif %}
+              <span class="rating-date modern-rating-date">({{ review.ReviewDate.strftime('%B %d, %Y') }})</span>
             </div>
-            {% if session['user_id'] %}
-            <div class="review-form-wrapper modern-review-form-wrapper">
-                {% if not user_review %}
-                <form class="review-form styled-review-form modern-styled-review-form" method="POST" action="{{ url_for('meals.add_mealplan_review', plan_id=meal_plan.PlanID) }}">
-                    <h4>Leave a Review</h4>
-                    <div class="star-rating-input modern-star-rating-input" id="starRatingInput">
-                        {% for i in range(5, 0, -1) %}
-                        <input type="radio" id="star{{ i }}" name="score" value="{{ i }}" required>
-                        <label for="star{{ i }}" title="{{ i }} stars"><i class="fas fa-star"></i></label>
-                        {% endfor %}
-                    </div>
-                    <label for="comment">Comment:</label>
-                    <textarea name="comment" id="comment" rows="2" required placeholder="Share your thoughts..." class="styled-textarea modern-styled-textarea"></textarea>
-                    <button type="submit" class="styled-review-btn modern-styled-review-btn">Submit Review</button>
-                </form>
-                {% else %}
-                <form class="review-form styled-review-form modern-styled-review-form" method="POST" action="{{ url_for('meals.edit_mealplan_review', plan_id=meal_plan.PlanID) }}">
-                    <h4>Edit Your Review</h4>
-                    <div class="star-rating-input modern-star-rating-input" id="starRatingInput">
-                        {% for i in range(5, 0, -1) %}
-                        <input type="radio" id="star-edit-{{ i }}" name="score" value="{{ i }}" {% if user_review.Score==i %}checked{% endif %} required>
-                        <label for="star-edit-{{ i }}" title="{{ i }} stars"><i class="fas fa-star"></i></label>
-                        {% endfor %}
-                    </div>
-                    <label for="comment">Comment:</label>
-                    <textarea name="comment" id="comment" rows="2" required class="styled-textarea modern-styled-textarea">{{ user_review.Comment }}</textarea>
-                    <button type="submit" class="styled-review-btn modern-styled-review-btn">Update Review</button>
-                </form>
-                {% endif %}
-            </div>
-            {% else %}
-            <p class="login-to-review modern-login-to-review">You must <a href="{{ url_for('auth.login', next=request.url) }}">log in</a> to leave a review.</p>
-            {% endif %}
-        </section>
-    </article>
+          </div>
+          <p class="review-comment modern-review-comment">{{ review.Comment }}</p>
+          {% if session['user_id'] and review.UserID == session['user_id'] %}
+          <span class="your-review-label modern-your-review-label">(Your Review)</span>
+          {% endif %}
+          {% if logged_in_user_type == 'Admin' or review.UserID == session['user_id'] %}
+          <form method="POST" action="{{ url_for('meals.delete_mealplan_review', review_id=review.ReviewID) }}" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this review?');">
+            <button type="submit" class="btn btn-xs btn-danger">Delete</button>
+          </form>
+          {% endif %}
+        </div>
+        {% endfor %}
+        {% if reviews|length == 0 %}
+        <p class="modern-no-reviews">No reviews yet.</p>
+        {% endif %}
+      </div>
+      {% if session['user_id'] %}
+      <div class="review-form-wrapper modern-review-form-wrapper">
+        {% if not user_review %}
+        <form class="review-form styled-review-form modern-styled-review-form" method="POST" action="{{ url_for('meals.add_mealplan_review', plan_id=meal_plan.PlanID) }}">
+          <h4>Leave a Review</h4>
+          <div class="star-rating-input modern-star-rating-input" id="starRatingInput">
+            {% for i in range(5, 0, -1) %}
+            <input type="radio" id="star{{ i }}" name="score" value="{{ i }}" required>
+            <label for="star{{ i }}" title="{{ i }} stars"><i class="fas fa-star"></i></label>
+            {% endfor %}
+          </div>
+          <label for="comment">Comment:</label>
+          <textarea name="comment" id="comment" rows="2" required placeholder="Share your thoughts..." class="styled-textarea modern-styled-textarea"></textarea>
+          <button type="submit" class="styled-review-btn modern-styled-review-btn">Submit Review</button>
+        </form>
+        {% else %}
+        <form class="review-form styled-review-form modern-styled-review-form" method="POST" action="{{ url_for('meals.edit_mealplan_review', plan_id=meal_plan.PlanID) }}">
+          <h4>Edit Your Review</h4>
+          <div class="star-rating-input modern-star-rating-input" id="starRatingInput">
+            {% for i in range(5, 0, -1) %}
+            <input type="radio" id="star-edit-{{ i }}" name="score" value="{{ i }}" {% if user_review.Score==i %}checked{% endif %} required>
+            <label for="star-edit-{{ i }}" title="{{ i }} stars"><i class="fas fa-star"></i></label>
+            {% endfor %}
+          </div>
+          <label for="comment">Comment:</label>
+          <textarea name="comment" id="comment" rows="2" required class="styled-textarea modern-styled-textarea">{{ user_review.Comment }}</textarea>
+          <button type="submit" class="styled-review-btn modern-styled-review-btn">Update Review</button>
+        </form>
+        {% endif %}
+      </div>
+      {% else %}
+      <p class="login-to-review modern-login-to-review">You must <a href="{{ url_for('auth.login', next=request.url) }}">log in</a> to leave a review.</p>
+      {% endif %}
+    </section>
+  </article>
 </main>
 {% endblock %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.modern-star-rating-input').forEach(function (starInput) {
+            starInput.querySelectorAll('label').forEach(function (label) {
+                label.addEventListener('click', function (e) {
+                    var input = document.getElementById(label.getAttribute('for'));
+                    if (input) input.checked = true;
+                });
+            });
+        });
+    });
+</script>
