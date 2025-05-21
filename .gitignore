@@ -1,0 +1,46 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+.env/
+env/
+.venv/
+ENV/
+
+# VSCode settings
+.vscode/
+
+# Flask instance folder and config files
+instance/
+config.py
+*.env
+
+# SQLite / Database files
+*.sqlite3
+*.db
+*.sql
+
+# Static uploads (optional - if storing images/users files)
+static/uploads/
+media/
+
+# Logs
+*.log
+
+# Pytest / coverage
+htmlcov/
+coverage.xml
+*.cover
+.pytest_cache/
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+
+# Mac / Linux / Windows system files
+.DS_Store
+Thumbs.db

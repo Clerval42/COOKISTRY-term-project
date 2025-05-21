@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block title %}COOKISTRY - Tarifler{% endblock %}
+{% block content %}
+<main>
+    <section class="categories-section">
+        <h2 class="section-title">CATEGORIES</h2>
+        <div class="categories-grid">
+            {% for category in categories %}
+                <a href="{{ url_for('pages.category_page', category_name=category|lower|replace(' ', '_')) }}" class="category-card">
+                    <img src="{{ url_for('static', filename='images/category-' + category|lower|replace(' ', '-') + '.jpg') }}" alt="{{ category }}">
+                    <h3>{{ category|upper }}</h3>
+                </a>
+            {% endfor %}
+        </div>
+    </section>
+</main>
+{% endblock %}

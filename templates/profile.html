@@ -1,0 +1,184 @@
+{% extends 'base.html' %}
+{% block title %}COOKISTRY - My Profile{% endblock %}
+{% block content %}
+<main class="profile-page-main">
+    <div class="profile-modern-container">
+        <!-- Yatay Kimlik Kartı -->
+        <div class="identity-card-modern">
+            <div class="profile-avatar">
+                <img src="{{ url_for('static', filename=user.ProfilePicturePath) }}" alt="{{ user.UserName or 'User' }}">
+            </div>
+            <div class="profile-info">
+                <h2>{{ user.UserName or 'No Name Found' }}</h2>
+                <div class="profile-meta">@{{ (user.UserName|lower|replace(' ', '')) if user.UserName else 'nouser' }}</div>
+                <div class="profile-meta"><i class="fas fa-envelope"></i> {{ user.Email or 'No Email' }}</div>
+                <div class="profile-meta"><i class="fas fa-calendar-alt"></i> Joined: {{ user.RegistrationDate.strftime('%B %d, %Y') if user.RegistrationDate else 'Unknown' }}</div>
+                <a href="{{ url_for('auth.logout') }}" class="profile-logout-btn">Log Out</a>
+            </div>
+        </div>
+
+        <!-- İçerik: Tarifler ve Planlar Yan Yana -->
+        <div class="profile-main-content-row">
+            <!-- My Shared Recipes -->
+            <section class="profile-half-section">
+                <h3>My Shared Recipes</h3>
+                <div class="profile-items-grid">
+                    {% if recipes and recipes|length > 0 %}
+                        {% for recipe in recipes %}
+                        <div class="recipe-card profile-item-card">
+                            <a href="{{ url_for('recipe.recipe_detail_name_id', name=slugify(recipe.RecipeName), recipe_id=recipe.RecipeID) }}">
+                                <img src="{{ url_for('static', filename=recipe.RecipeImagePath) }}" alt="{{ recipe.RecipeName }}">
+                                <div class="recipe-info">
+                                    <h4>{{ recipe.RecipeName }}</h4>
+                                    <span class="item-date">Added: {{ recipe.RecipeDate.strftime('%b %d, %Y') }}</span>
+                                </div>
+                            </a>
+                            <div class="item-actions">
+                                {% if logged_in_user_type == 'Admin' or recipe.AddedByUserID == session['user_id'] %}
+                                <a href="{{ url_for('add.edit_recipe', recipe_id=recipe.RecipeID) }}" class="btn btn-sm btn-primary">Edit</a>
+                                <form method="POST" action="{{ url_for('add.delete_recipe', recipe_id=recipe.RecipeID) }}" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this recipe?');">
+                                    <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="no-items-message">You haven't added any recipes yet.</p>
+                    {% endif %}
+                </div>
+            </section>
+
+            <!-- My Meal Plans -->
+            <section class="profile-half-section">
+                <h3>My Meal Plans</h3>
+                <div class="profile-items-grid">
+                    {% if meal_plans and meal_plans|length > 0 %}
+                        {% for plan in meal_plans %}
+                        <div class="recipe-card profile-item-card">
+                            <a href="{{ url_for('meals.meal_plan_detail', id=plan.PlanID) }}" class="recipe-preview-card mealplan-card" style="text-decoration:none;color:inherit;">
+                                <img src="{{ url_for('static', filename=plan.PlanImagePath) }}" alt="{{ plan.PlanName or plan.PlanID }}">
+                                <div class="recipe-info">
+                                    <h4>{{ plan.PlanName or 'Meal Plan #' ~ plan.PlanID }}</h4>
+                                    <span class="cook-time"><i class="far fa-calendar"></i> {{ plan.PlanDate.strftime('%Y-%m-%d') }}</span>
+                                    <span class="mealplan-type"><strong>Type:</strong> {{ plan.PlanType }}</span>
+                                </div>
+                            </a>
+                            <div class="item-actions">
+                                {% if logged_in_user_type == 'Admin' or plan.UserID == session['user_id'] %}
+                                <a href="{{ url_for('add.edit_mealplan', plan_id=plan.PlanID) }}" class="btn btn-sm btn-primary">Edit</a>
+                                <form method="POST" action="{{ url_for('add.delete_mealplan', plan_id=plan.PlanID) }}" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this meal plan?');">
+                                    <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="no-items-message">You haven't created any meal plans yet.</p>
+                    {% endif %}
+                </div>
+            </section>
+        </div>
+
+        <!-- Reviews Bölümü (En Altta Tam Genişlik) -->
+        <section class="profile-reviews-section">
+            <h3>My Reviews and Ratings</h3>
+            <div class="reviews-list modern-reviews-list" style="background: #fff; border-radius: 18px; border: 2.5px solid #c0392b; box-shadow: 0 6px 32px rgba(192, 57, 43, 0.13), 0 1.5px 8px rgba(0, 0, 0, 0.04); padding: 38px 32px 32px 32px; max-width: 700px; margin-left: auto; margin-right: auto;">
+                <h4 style="color: #b71c1c; font-size: 19px; font-weight: 700; margin-bottom: 18px;">What Others Are Saying:</h4>
+                {% if reviews and reviews|length > 0 %}
+                    {% for review in reviews %}
+                    <div class="review-item modern-review-item" style="background: #f9f6f6; border-radius: 10px; border: 1.5px solid #f2dede; box-shadow: 0 2px 10px rgba(192, 57, 43, 0.06); padding: 20px 22px 14px 22px; margin-bottom: 20px; transition: box-shadow 0.2s;">
+                        <div class="review-item-header modern-review-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+                            <div class="reviewer-info modern-reviewer-info" style="display: flex; align-items: center; gap: 12px;">
+                                <img src="{{ url_for('static', filename=review.user.ProfilePicturePath) }}" alt="{{ review.user.UserName }}" class="reviewer-avatar modern-reviewer-avatar" style="width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 2.5px solid #fff; background: #f5f5f5;">
+                                <span class="reviewer-name modern-reviewer-name" style="font-weight: 700; color: #b71c1c; font-size: 17px;">{{ review.user.UserName }}</span>
+                            </div>
+                            <div class="review-rating modern-review-rating" style="display: flex; align-items: center; gap: 2px; font-size: 20px; color: #c0392b;">
+                                {% for i in range(1, 6) %}
+                                <i class="fa-star {% if review.Score >= i %}fas{% else %}far{% endif %}"></i>
+                                {% endfor %}
+                                <span class="rating-date modern-rating-date" style="font-size: 13px; color: #888; margin-left: 10px;">(Rated on: {{ review.ReviewDate.strftime('%b %d, %Y') }})</span>
+                            </div>
+                        </div>
+                        <span class="review-target" style="display: block; margin-bottom: 6px; color: #b71c1c; font-weight: 600;">
+                            For:
+                            {% if review.RecipeID and review.recipe %}
+                            <a href="{{ url_for('recipe.recipe_detail_name_id', name=slugify(review.recipe.RecipeName), recipe_id=review.RecipeID) }}" style="color: #c0392b; text-decoration: underline;">{{ review.recipe.RecipeName }}</a>
+                            {% elif review.PlanID and review.mealplan %}
+                            <a href="{{ url_for('meals.meal_plan_detail',name=slugify(review.mealplan.PlanName), id=review.PlanID) }}" style="color: #c0392b; text-decoration: underline;">{{ review.mealplan.PlanName }}</a>
+                            {% endif %}
+                        </span>
+                        <p class="review-comment modern-review-comment" style="font-size: 16px; color: #444; margin-bottom: 4px; margin-top: 0;">{{ review.Comment }}</p>
+                        {% if session['user_id'] and review.UserID == session['user_id'] %}
+                        <span class="your-review-label modern-your-review-label" style="font-size: 13px; color: #b71c1c; font-weight: 600; margin-left: 8px;">(Your Review)</span>
+                        <div class="item-actions review-actions" style="display: flex; gap: 8px; justify-content: center; align-items: center; margin-top: 8px;">
+                            {% if review.RecipeID %}
+                            <form class="edit-review-form" method="POST" action="{{ url_for('recipe.edit_recipe_review', recipe_id=review.RecipeID) }}">
+                                <label for="score-{{ review.ReviewID }}" style="font-size: 15px; color: #b71c1c; font-weight: 600; margin-top: 0; margin-bottom: 4px; display: block;">Edit Rating:</label>
+                                <select name="score" id="score-{{ review.ReviewID }}" required style="border-radius: 6px; border: 1.5px solid #c0392b; padding: 4px 8px; font-size: 15px; margin-bottom: 6px;">
+                                    <option value="">Select</option>
+                                    {% for i in range(1, 6) %}
+                                    <option value="{{ i }}" {% if review.Score == i %}selected{% endif %}>{{ i }}</option>
+                                    {% endfor %}
+                                </select>
+                                <label for="comment-{{ review.ReviewID }}" style="font-size: 15px; color: #b71c1c; font-weight: 600; margin-top: 0; margin-bottom: 4px; display: block;">Edit Comment:</label>
+                                <textarea name="comment" id="comment-{{ review.ReviewID }}" rows="2" required style="width: 100%; min-height: 50px; border-radius: 6px; border: 1.5px solid #c0392b; padding: 8px 10px; font-size: 15px; margin-bottom: 6px;">{{ review.Comment }}</textarea>
+                                <button type="submit" style="background: linear-gradient(90deg, #c0392b 80%, #a5281b 100%); color: #fff; border: none; border-radius: 18px; padding: 7px 18px; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 2px;">Update Review</button>
+                            </form>
+                            <form method="POST" action="{{ url_for('recipe.delete_recipe_review', review_id=review.ReviewID) }}" style="display:inline; margin-left: 4px;" onsubmit="return confirm('Are you sure you want to delete this review?');">
+                                <button type="submit" class="btn btn-sm btn-danger" style="border-radius: 18px; font-size: 15px; padding: 7px 18px; font-weight: 700;">Delete</button>
+                            </form>
+                            {% elif review.PlanID %}
+                            <form class="edit-review-form" method="POST" action="{{ url_for('meals.edit_mealplan_review', plan_id=review.PlanID) }}">
+                                <label for="score-{{ review.ReviewID }}" style="font-size: 15px; color: #b71c1c; font-weight: 600; margin-top: 0; margin-bottom: 4px; display: block;">Edit Rating:</label>
+                                <select name="score" id="score-{{ review.ReviewID }}" required style="border-radius: 6px; border: 1.5px solid #c0392b; padding: 4px 8px; font-size: 15px; margin-bottom: 6px;">
+                                    <option value="">Select</option>
+                                    {% for i in range(1, 6) %}
+                                    <option value="{{ i }}" {% if review.Score == i %}selected{% endif %}>{{ i }}</option>
+                                    {% endfor %}
+                                </select>
+                                <label for="comment-{{ review.ReviewID }}" style="font-size: 15px; color: #b71c1c; font-weight: 600; margin-top: 0; margin-bottom: 4px; display: block;">Edit Comment:</label>
+                                <textarea name="comment" id="comment-{{ review.ReviewID }}" rows="2" required style="width: 100%; min-height: 50px; border-radius: 6px; border: 1.5px solid #c0392b; padding: 8px 10px; font-size: 15px; margin-bottom: 6px;">{{ review.Comment }}</textarea>
+                                <button type="submit" style="background: linear-gradient(90deg, #c0392b 80%, #a5281b 100%); color: #fff; border: none; border-radius: 18px; padding: 7px 18px; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 2px;">Update Review</button>
+                            </form>
+                            <form method="POST" action="{{ url_for('meals.delete_mealplan_review', review_id=review.ReviewID) }}" style="display:inline; margin-left: 4px;" onsubmit="return confirm('Are you sure you want to delete this review?');">
+                                <button type="submit" class="btn btn-sm btn-danger" style="border-radius: 18px; font-size: 15px; padding: 7px 18px; font-weight: 700;">Delete</button>
+                            </form>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="modern-no-reviews">You haven't reviewed or rated any items yet.</p>
+                {% endif %}
+            </div>
+        </section>
+    </div>
+</main>
+{% endblock %}
+{% block scripts %}
+<script>
+    // Profile page specific JS
+    document.addEventListener('DOMContentLoaded', function() {
+        const tabs = document.querySelectorAll('.profile-tab-btn');
+        const tabContents = document.querySelectorAll('.profile-tab-content');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Remove active class from all tabs and contents
+                tabs.forEach(t => t.classList.remove('active'));
+                tabContents.forEach(c => c.classList.remove('active'));
+
+                // Add active class to clicked tab and corresponding content
+                tab.classList.add('active');
+                const targetContent = document.getElementById(tab.dataset.tab);
+                if (targetContent) {
+                    targetContent.classList.add('active');
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

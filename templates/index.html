@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% block title %}COOKISTRY - Anasayfa{% endblock %}
+{% block content %}
+<main>
+    <section class="recipe-category">
+        <h2><a href="recipes.html?category=popular">TOP RATED RECIPES</a></h2>
+        <div class="recipe-carousel">
+            <button class="carousel-arrow prev-arrow"><i class="fas fa-chevron-left"></i></button>
+            <div class="recipe-cards-container">
+                {% for recipe in popular_recipes %}
+                <div class="recipe-card">
+                    <a href="{{ url_for('recipe.recipe_detail_name_id', name=slugify(recipe.RecipeName), recipe_id=recipe.RecipeID) }}">
+                        <img src="{{ url_for('static', filename=recipe.RecipeImagePath) }}" alt="{{ recipe.RecipeName }}">
+                        <div class="recipe-info">
+                            {% if loop.index0 < 3 %}<span class="new-badge">YENİ</span>{% endif %} <span class="category-tag">{{ recipe.RecipeCategory }}</span>
+                            <h3>{{ recipe.RecipeName }}</h3>
+                            <div class="recipe-author">
+                                <img src="{{ url_for('static', filename=recipe.user.ProfilePicturePath) }}" alt="{{ recipe.user.UserName if recipe.user else '' }}">
+                                <span>{{ recipe.user.UserName if recipe.user else '' }}</span>
+                            </div>
+                            <span class="cook-time"><i class="far fa-clock"></i> {{ recipe.CookingTime }}dk</span>
+                        </div>
+                    </a>
+                    {% if logged_in_user_type == 'Admin' or recipe.AddedByUserID == session['user_id'] %}
+                    <div class="item-actions">
+                        <a href="{{ url_for('add.edit_recipe', recipe_id=recipe.RecipeID) }}" class="btn btn-xs btn-primary">Edit</a>
+                        <form method="POST" action="{{ url_for('add.delete_recipe', recipe_id=recipe.RecipeID) }}" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this recipe?');">
+                            <button type="submit" class="btn btn-xs btn-danger">Delete</button>
+                        </form>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            <button class="carousel-arrow next-arrow"><i class="fas fa-chevron-right"></i></button>
+        </div>
+    </section>
+    <section class="recipe-category">
+        <h2><a href="meals.html?category=popular">MOST POPULAR MEALS</a></h2>
+        <div class="recipe-carousel">
+            <button class="carousel-arrow prev-arrow"><i class="fas fa-chevron-left"></i></button>
+            <div class="recipe-cards-container">
+                {% for meal in popular_meals %}
+                <div class="recipe-card">
+                    <a href="{{ url_for('meals.meal_plan_detail', id=meal.PlanID) }}">
+                        <img src="{{ url_for('static', filename=meal.PlanImagePath) }}" alt="{{ meal.PlanName }}">
+                        <div class="recipe-info">
+                            <h3>{{ meal.PlanName }}</h3>
+                            <span class="cook-time"><i class="fas fa-tag"></i> {{ meal.PlanType }}</span>
+                        </div>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+            <button class="carousel-arrow next-arrow"><i class="fas fa-chevron-right"></i></button>
+        </div>
+    </section>
+    <section class="recipe-category">
+        <h2><a href="recipes.html?category=commented">MOST COMMENTED RECIPES</a></h2>
+         <div class="recipe-carousel">
+            <button class="carousel-arrow prev-arrow"><i class="fas fa-chevron-left"></i></button>
+            <div class="recipe-cards-container">
+                {% for recipe in most_commented %}
+                <div class="recipe-card">
+                    <a href="{{ url_for('recipe.recipe_detail_name_id', name=slugify(recipe.RecipeName), recipe_id=recipe.RecipeID) }}">
+                        <img src="{{ url_for('static', filename=recipe.RecipeImagePath) }}" alt="{{ recipe.RecipeName }}">
+                        <div class="recipe-info">
+                            <h3>{{ recipe.RecipeName }}</h3>
+                            <span class="cook-time"><i class="far fa-clock"></i> {{ recipe.CookingTime }}dk</span>
+                        </div>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+            <button class="carousel-arrow next-arrow"><i class="fas fa-chevron-right"></i></button>
+        </div>
+    </section>
+    <section class="recipe-category">
+        <h2><a href="lists.html?type=active_users">MOST ACTIVE USERS</a></h2>
+         <div class="recipe-carousel">
+            <button class="carousel-arrow prev-arrow"><i class="fas fa-chevron-left"></i></button>
+            <div class="recipe-cards-container">
+                {% for user in most_active_users %}
+                <div class="recipe-card">
+                    <a href="{{ url_for('profile.user_profile', id=user.UserID) }}">
+                        <img src="{{ url_for('static', filename=user.ProfilePicturePath) }}" alt="{{ user.UserName }}">
+                        <div class="recipe-info">
+                            <h3>{{ user.UserName }}</h3>
+                            <span class="cook-time"><i class="far fa-clock"></i> Joined: {{ user.RegistrationDate.strftime('%Y-%m-%d') }}</span>
+                        </div>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+            <button class="carousel-arrow next-arrow"><i class="fas fa-chevron-right"></i></button>
+        </div>
+    </section>
+    <section class="recipe-category">
+        <h2><a href="lists.html?type=used_ingredients">MOST USED INGREDIENTS</a></h2>
+         <div class="recipe-carousel">
+            <button class="carousel-arrow prev-arrow"><i class="fas fa-chevron-left"></i></button>
+            <div class="recipe-cards-container">
+                {% for ingredient in most_used_ingredients %}
+                <div class="recipe-card">
+                    <a href="{{ url_for('recipe.recipe_list', ingredient=ingredient.IngredientID) }}">
+                        <img src="{{ url_for('static', filename='images/ingredient-default.png') }}" alt="{{ ingredient.IngredientName }}">
+                        <div class="recipe-info">
+                            <h3>{{ ingredient.IngredientName }}</h3>
+                            <span class="cook-time"><i class="far fa-clock"></i> {{ ingredient.IngredientCategory }}</span>
+                        </div>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+            <button class="carousel-arrow next-arrow"><i class="fas fa-chevron-right"></i></button>
+        </div>
+    </section>
+</main>
+{% endblock %}

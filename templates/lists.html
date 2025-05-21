@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+
+{% block title %}COOKISTRY - Recipe Lists by Ingredient{% endblock %}
+
+{% block content %}
+<main>
+    <section class="page-title-section">
+        <h1>Recipe Lists by Ingredient</h1>
+        <p>Find delicious recipes based on the ingredients you love or have on hand!</p>
+    </section>
+    <!-- Meat Recipes -->
+    <section class="recipe-category list-section-item">
+        <h2><a href="{{ url_for('recipe.recipe_category', category_name='meat') }}">RECIPES WITH MEAT</a></h2>
+        <div class="recipe-carousel">
+            <button class="carousel-arrow prev-arrow"><i class="fas fa-chevron-left"></i></button>
+            <div class="recipe-cards-container">
+                {% for recipe in meat_recipes %}
+                <div class="recipe-card">
+                    <a href="{{ url_for('recipe.recipe_detail_name_id', name=slugify(recipe.RecipeName), recipe_id=recipe.RecipeID) }}">
+                        <img src="{{ url_for('static', filename=recipe.RecipeImagePath) }}" alt="{{ recipe.RecipeName }}">
+                        <div class="recipe-info">
+                            <h3>{{ recipe.RecipeName }}</h3>
+                            <span class="cook-time"><i class="far fa-clock"></i> {{ recipe.CookingTime }}dk</span>
+                        </div>
+                    </a>
+                    {% if logged_in_user_type == 'Admin' or recipe.AddedByUserID == session['user_id'] %}
+                    <div class="item-actions">
+                        <a href="{{ url_for('add.edit_recipe', recipe_id=recipe.RecipeID) }}" class="btn btn-xs btn-primary">Edit</a>
+                        <form method="POST" action="{{ url_for('add.delete_recipe', recipe_id=recipe.RecipeID) }}" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this recipe?');">
+                            <button type="submit" class="btn btn-xs btn-danger">Delete</button>
+                        </form>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            <button class="carousel-arrow next-arrow"><i class="fas fa-chevron-right"></i></button>
+        </div>
+    </section>
+    <!-- Bakery Recipes -->
+    <section class="recipe-category list-section-item">
+        <h2><a href="{{ url_for('recipe.recipe_category', category_name='bakery') }}">RECIPES WITH BAKERY</a></h2>
+        <div class="recipe-carousel">
+            <button class="carousel-arrow prev-arrow"><i class="fas fa-chevron-left"></i></button>
+            <div class="recipe-cards-container">
+                {% for recipe in bakery_recipes %}
+                <div class="recipe-card">
+                    <a href="{{ url_for('recipe.recipe_detail_name_id', name=slugify(recipe.RecipeName), recipe_id=recipe.RecipeID) }}">
+                        <img src="{{ url_for('static', filename=recipe.RecipeImagePath) }}" alt="{{ recipe.RecipeName }}">
+                        <div class="recipe-info">
+                            <h3>{{ recipe.RecipeName }}</h3>
+                            <span class="cook-time"><i class="far fa-clock"></i> {{ recipe.CookingTime }}dk</span>
+                        </div>
+                    </a>
+                    {% if logged_in_user_type == 'Admin' or recipe.AddedByUserID == session['user_id'] %}
+                    <div class="item-actions">
+                        <a href="{{ url_for('add.edit_recipe', recipe_id=recipe.RecipeID) }}" class="btn btn-xs btn-primary">Edit</a>
+                        <form method="POST" action="{{ url_for('add.delete_recipe', recipe_id=recipe.RecipeID) }}" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this recipe?');">
+                            <button type="submit" class="btn btn-xs btn-danger">Delete</button>
+                        </form>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            <button class="carousel-arrow next-arrow"><i class="fas fa-chevron-right"></i></button>
+        </div>
+    </section>
+    <!-- Pasta & Noodles Recipes -->
+    <section class="recipe-category list-section-item">
+        <h2><a href="{{ url_for('recipe.recipe_category', category_name='pasta-noodles') }}">RECIPES WITH PASTA & NOODLES</a></h2>
+        <div class="recipe-carousel">
+            <button class="carousel-arrow prev-arrow"><i class="fas fa-chevron-left"></i></button>
+            <div class="recipe-cards-container">
+                {% for recipe in pasta_noodles_recipes %}
+                <div class="recipe-card">
+                    <a href="{{ url_for('recipe.recipe_detail_name_id', name=slugify(recipe.RecipeName), recipe_id=recipe.RecipeID) }}">
+                        <img src="{{ url_for('static', filename=recipe.RecipeImagePath) }}" alt="{{ recipe.RecipeName }}">
+                        <div class="recipe-info">
+                            <h3>{{ recipe.RecipeName }}</h3>
+                            <span class="cook-time"><i class="far fa-clock"></i> {{ recipe.CookingTime }}dk</span>
+                        </div>
+                    </a>
+                    {% if logged_in_user_type == 'Admin' or recipe.AddedByUserID == session['user_id'] %}
+                    <div class="item-actions">
+                        <a href="{{ url_for('add.edit_recipe', recipe_id=recipe.RecipeID) }}" class="btn btn-xs btn-primary">Edit</a>
+                        <form method="POST" action="{{ url_for('add.delete_recipe', recipe_id=recipe.RecipeID) }}" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this recipe?');">
+                            <button type="submit" class="btn btn-xs btn-danger">Delete</button>
+                        </form>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            <button class="carousel-arrow next-arrow"><i class="fas fa-chevron-right"></i></button>
+        </div>
+    </section>
+    <!-- Vegetable Recipes -->
+    <section class="recipe-category list-section-item">
+        <h2><a href="{{ url_for('recipe.recipe_category', category_name='vegetable') }}">RECIPES WITH VEGETABLE</a></h2>
+        <div class="recipe-carousel">
+            <button class="carousel-arrow prev-arrow"><i class="fas fa-chevron-left"></i></button>
+            <div class="recipe-cards-container">
+                {% for recipe in vegetable_recipes %}
+                <div class="recipe-card">
+                    <a href="{{ url_for('recipe.recipe_detail_name_id', name=slugify(recipe.RecipeName), recipe_id=recipe.RecipeID) }}">
+                        <img src="{{ url_for('static', filename=recipe.RecipeImagePath) }}" alt="{{ recipe.RecipeName }}">
+                        <div class="recipe-info">
+                            <h3>{{ recipe.RecipeName }}</h3>
+                            <span class="cook-time"><i class="far fa-clock"></i> {{ recipe.CookingTime }}dk</span>
+                        </div>
+                    </a>
+                    {% if logged_in_user_type == 'Admin' or recipe.AddedByUserID == session['user_id'] %}
+                    <div class="item-actions">
+                        <a href="{{ url_for('add.edit_recipe', recipe_id=recipe.RecipeID) }}" class="btn btn-xs btn-primary">Edit</a>
+                        <form method="POST" action="{{ url_for('add.delete_recipe', recipe_id=recipe.RecipeID) }}" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this recipe?');">
+                            <button type="submit" class="btn btn-xs btn-danger">Delete</button>
+                        </form>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            <button class="carousel-arrow next-arrow"><i class="fas fa-chevron-right"></i></button>
+        </div>
+    </section>
+    <!-- Seafood Recipes -->
+    <section class="recipe-category list-section-item">
+        <h2><a href="{{ url_for('recipe.recipe_category', category_name='seafood') }}">RECIPES WITH SEAFOOD</a></h2>
+        <div class="recipe-carousel">
+            <button class="carousel-arrow prev-arrow"><i class="fas fa-chevron-left"></i></button>
+            <div class="recipe-cards-container">
+                {% for recipe in seafood_recipes %}
+                <div class="recipe-card">
+                    <a href="{{ url_for('recipe.recipe_detail_name_id', name=slugify(recipe.RecipeName), recipe_id=recipe.RecipeID) }}">
+                        <img src="{{ url_for('static', filename=recipe.RecipeImagePath) }}" alt="{{ recipe.RecipeName }}">
+                        <div class="recipe-info">
+                            <h3>{{ recipe.RecipeName }}</h3>
+                            <span class="cook-time"><i class="far fa-clock"></i> {{ recipe.CookingTime }}dk</span>
+                        </div>
+                    </a>
+                    {% if logged_in_user_type == 'Admin' or recipe.AddedByUserID == session['user_id'] %}
+                    <div class="item-actions">
+                        <a href="{{ url_for('add.edit_recipe', recipe_id=recipe.RecipeID) }}" class="btn btn-xs btn-primary">Edit</a>
+                        <form method="POST" action="{{ url_for('add.delete_recipe', recipe_id=recipe.RecipeID) }}" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this recipe?');">
+                            <button type="submit" class="btn btn-xs btn-danger">Delete</button>
+                        </form>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            <button class="carousel-arrow next-arrow"><i class="fas fa-chevron-right"></i></button>
+        </div>
+    </section>
+    <!-- Example: Chicken Recipes (keep or remove as needed) -->
+    <section class="recipe-category list-section-item">
+        <h2><a href="{{ url_for('recipe.recipe_category', category_name='chicken') }}">RECIPES WITH CHICKEN</a></h2>
+        <div class="recipe-carousel">
+            <button class="carousel-arrow prev-arrow"><i class="fas fa-chevron-left"></i></button>
+            <div class="recipe-cards-container">
+                {% for recipe in chicken_recipes %}
+                <div class="recipe-card">
+                    <a href="{{ url_for('recipe.recipe_detail_name_id', name=slugify(recipe.RecipeName), recipe_id=recipe.RecipeID) }}">
+                        <img src="{{ url_for('static', filename=recipe.RecipeImagePath) }}" alt="{{ recipe.RecipeName }}">
+                        <div class="recipe-info">
+                            <h3>{{ recipe.RecipeName }}</h3>
+                            <span class="cook-time"><i class="far fa-clock"></i> {{ recipe.CookingTime }}dk</span>
+                        </div>
+                    </a>
+                    {% if logged_in_user_type == 'Admin' or recipe.AddedByUserID == session['user_id'] %}
+                    <div class="item-actions">
+                        <a href="{{ url_for('add.edit_recipe', recipe_id=recipe.RecipeID) }}" class="btn btn-xs btn-primary">Edit</a>
+                        <form method="POST" action="{{ url_for('add.delete_recipe', recipe_id=recipe.RecipeID) }}" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this recipe?');">
+                            <button type="submit" class="btn btn-xs btn-danger">Delete</button>
+                        </form>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            <button class="carousel-arrow next-arrow"><i class="fas fa-chevron-right"></i></button>
+        </div>
+    </section>
+    <!-- Add more ingredient sections as needed -->
+</main>
+{% endblock %}

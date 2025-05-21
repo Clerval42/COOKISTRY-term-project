@@ -1,0 +1,526 @@
+{% extends 'base.html' %}
+{% block title %}COOKISTRY - {% if edit_mode %}Edit{% else %}Add New{% endif %}{% endblock %}
+{% block content %}
+<main>
+    <section class="page-title-section">
+        <h1>{% if edit_mode %}Edit{% else %}Add New Creation{% endif %}</h1>
+        <p>{% if edit_mode %}Update your creation details below.{% else %}Share your culinary masterpieces with the
+            community!{% endif %}</p>
+    </section>
+    <section class="add-form-section">
+        <div class="form-type-selection">
+            <h2>What would you like to add?</h2>
+            <button id="showRecipeFormBtn" class="form-type-btn active">{% if edit_mode and recipe %}Edit Recipe{% else
+                %}Add Recipe{% endif %}</button>
+            <button id="showMealPlanFormBtn" class="form-type-btn">{% if edit_mode and mealplan %}Edit Meal Plan{% else
+                %}Add Meal Plan{% endif %}</button>
+        </div>
+        <!-- Recipe Adding Form -->
+        <form id="addRecipeForm" class="add-form" method="post" enctype="multipart/form-data"
+            action="{% if edit_mode and recipe %}{{ url_for('add.edit_recipe', recipe_id=recipe.RecipeID) }}{% else %}{{ url_for('add.add_recipe') }}{% endif %}">
+            <input type="hidden" id="isEditMode" value="{{ '1' if edit_mode and recipe else '0' }}">
+            <input type="hidden" id="hasCurrentImage"
+                value="{{ '1' if edit_mode and recipe and recipe.RecipeImagePath else '0' }}">
+            <h2>{% if edit_mode and recipe %}Edit Recipe{% else %}Add a New Recipe{% endif %}</h2>
+            <div class="form-group">
+                <label for="recipeName">Recipe Name</label>
+                <input type="text" id="recipeName" name="recipeName" placeholder="e.g., Delicious Chocolate Cake"
+                    required value="{% if edit_mode and recipe %}{{ recipe.RecipeName }}{% endif %}">
+            </div>
+            <div class="form-group">
+                <label for="recipeCategory">Category</label>
+                <select id="recipeCategory" name="recipeCategory" required>
+                    <option value="" disabled {% if not (edit_mode and recipe) %}selected{% endif %}>Select a
+                        category...</option>
+                    {% for cat in categories %}
+                    <option value="{{ cat }}" {% if edit_mode and recipe and recipe.RecipeCategory==cat %}selected{%
+                        endif %}>{{ cat }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="recipeDescription">Description</label>
+                <textarea id="recipeDescription" name="recipeDescription" rows="4"
+                    placeholder="Briefly describe your recipe..."
+                    required>{% if edit_mode and recipe %}{{ recipe.Description }}{% endif %}</textarea>
+            </div>
+            <div class="form-group">
+                <label for="recipePhoto">Recipe Photo</label>
+                <input type="file" id="recipePhoto" name="recipePhoto" accept="image/*" {% if not (edit_mode and recipe
+                    and recipe.RecipeImagePath) %}required{% endif %}>
+                {% if edit_mode and recipe and recipe.RecipeImagePath %}
+                <img src="{{ recipe.RecipeImagePath }}" alt="Current Recipe Photo"
+                    style="max-width:120px; margin-top:8px;">
+                {% endif %}
+                <small>Upload a captivating image for your recipe.</small>
+            </div>
+            <div class="form-group">
+                <label>Ingredients</label>
+                <div id="ingredientsContainer">
+                    {% if edit_mode and recipe and edit_ingredients %}
+                    {% for ing in edit_ingredients %}
+                    <div class="ingredient-item">
+                        <input type="number" name="ingredient_quantity[]" placeholder="Quantity" min="0" step="any"
+                            class="input-qty" required value="{{ ing.Quantity }}">
+                        <select name="ingredient_unit[]" class="input-unit" required>
+                            <option value="" disabled>Unit</option>
+                            {% for unit in units %}
+                            <option value="{{ unit }}" {% if ing.Unit==unit %}selected{% endif %}>{{ unit }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="ingredient-search-wrapper" style="position:relative; flex-grow:1;">
+                            <input type="text" class="ingredient-search-input" placeholder="Search Ingredient..."
+                                autocomplete="off" required value="{{ ing.IngredientName }}">
+                            <input type="hidden" name="ingredient_id[]" class="ingredient-id-hidden"
+                                value="{{ ing.IngredientID }}">
+                            <div class="ingredient-search-results"
+                                style="position:absolute; top:100%; left:0; right:0; background:#fff; border:1px solid #ccc; z-index:10; display:none; max-height:150px; overflow-y:auto;">
+                            </div>
+                        </div>
+                        <button type="button" class="remove-item-btn"
+                            onclick="removeParentElement(this)">Remove</button>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <div class="ingredient-item">
+                        <input type="number" name="ingredient_quantity[]" placeholder="Quantity" min="0" step="any"
+                            class="input-qty" required>
+                        <select name="ingredient_unit[]" class="input-unit" required>
+                            <option value="" disabled selected>Unit</option>
+                            {% for unit in units %}
+                            <option value="{{ unit }}">{{ unit }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="ingredient-search-wrapper" style="position:relative; flex-grow:1;">
+                            <input type="text" class="ingredient-search-input" placeholder="Search Ingredient..."
+                                autocomplete="off" required>
+                            <input type="hidden" name="ingredient_id[]" class="ingredient-id-hidden">
+                            <div class="ingredient-search-results"
+                                style="position:absolute; top:100%; left:0; right:0; background:#fff; border:1px solid #ccc; z-index:10; display:none; max-height:150px; overflow-y:auto;">
+                            </div>
+                        </div>
+                        <button type="button" class="remove-item-btn"
+                            onclick="removeParentElement(this)">Remove</button>
+                    </div>
+                    {% endif %}
+                </div>
+                <button type="button" id="addIngredientBtn" class="add-item-btn">Add Another Ingredient</button>
+            </div>
+            <div class="form-group">
+                <label for="cookingTimeHours">Cooking Time</label>
+                <div class="time-inputs">
+                    <input type="number" id="cookingTimeHours" name="cookingTimeHours" placeholder="Hours" min="0"
+                        value="0">
+                    <span>Hours</span>
+                    <input type="number" id="cookingTimeMinutes" name="cookingTimeMinutes" placeholder="Mins" min="0"
+                        max="59" value="30" required>
+                    <span>Minutes</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="servings">Servings</label>
+                <input type="number" id="servings" name="servings" min="1" required
+                    value="{% if edit_mode and recipe %}{{ recipe.Servings }}{% endif %}">
+            </div>
+            <div class="form-group">
+                <label>Recipe Instructions</label>
+                <div id="instructionsContainer">
+                    {% if edit_mode and recipe and edit_instructions %}
+                    {% for step in edit_instructions %}
+                    <div class="instruction-step">
+                        <span class="step-number">Step {{ loop.index }}</span>
+                        <textarea name="instruction_text[]" rows="3" placeholder="Describe this step..."
+                            required>{{ step.InstructionText }}</textarea>
+                        <label class="step-photo-label">Upload Photo for this Step (Optional):</label>
+                        <input type="file" name="instruction_image[]" accept="image/*" class="step-photo-input">
+                        {% if step.ImagePath %}
+                        <img src="{{ step.ImagePath }}" alt="Step Image" style="max-width:100px; margin-top:5px;">
+                        {% endif %}
+                        <button type="button" class="remove-item-btn"
+                            onclick="removeParentElement(this); renumberSteps();">Remove Step</button>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <div class="instruction-step">
+                        <span class="step-number">Step 1</span>
+                        <textarea name="instruction_text[]" rows="3" placeholder="Describe this step..."
+                            required></textarea>
+                        <label class="step-photo-label">Upload Photo for this Step (Optional):</label>
+                        <input type="file" name="instruction_image[]" accept="image/*" class="step-photo-input">
+                        <button type="button" class="remove-item-btn"
+                            onclick="removeParentElement(this); renumberSteps();">Remove Step</button>
+                    </div>
+                    {% endif %}
+                </div>
+                <button type="button" id="addInstructionBtn" class="add-item-btn">Add Another Step</button>
+            </div>
+            <button type="submit" class="submit-form-btn">{% if edit_mode and recipe %}Update Recipe{% else %}Submit
+                Recipe{% endif %}</button>
+        </form>
+        <!-- Meal Plan Adding Form -->
+        <form id="addMealPlanForm" class="add-form" method="post" enctype="multipart/form-data"
+            action="{% if edit_mode and mealplan %}{{ url_for('add.edit_mealplan', plan_id=mealplan.PlanID) }}{% else %}{{ url_for('add.add_meal_plan') }}{% endif %}"
+            style="display: none;">
+            <h2>{% if edit_mode and mealplan %}Edit Meal Plan{% else %}Add a New Meal Plan{% endif %}</h2>
+            <div class="form-group">
+                <label for="mealPlanName">Meal Plan Name</label>
+                <input type="text" id="mealPlanName" name="mealPlanName" placeholder="e.g., Quick & Easy Lunches"
+                    required value="{% if edit_mode and mealplan %}{{ mealplan.PlanName }}{% endif %}">
+            </div>
+            <div class="form-group">
+                <label for="mealPlanDescription">Description</label>
+                <textarea id="mealPlanDescription" name="mealPlanDescription" rows="3"
+                    placeholder="Describe your meal plan..."
+                    required>{% if edit_mode and mealplan %}{{ mealplan.PlanDescription }}{% endif %}</textarea>
+            </div>
+            <div class="form-group">
+                <label for="mealPlanCategory">Category</label>
+                <select id="mealPlanCategory" name="mealPlanCategory" required>
+                    <option value="" disabled {% if not (edit_mode and mealplan) %}selected{% endif %}>Select a
+                        category...</option>
+                    {% for cat in mealplan_categories %}
+                    <option value="{{ cat }}" {% if edit_mode and mealplan and mealplan.PlanType==cat %}selected{% endif
+                        %}>{{ cat }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="mealPlanPhoto">Meal Plan Photo</label>
+                <input type="file" id="mealPlanPhoto" name="mealPlanPhoto" accept="image/*" {% if not (edit_mode and
+                    mealplan) %}required{% endif %}>
+                {% if edit_mode and mealplan and mealplan.PlanImagePath %}
+                <img src="{{ mealplan.PlanImagePath }}" alt="Current Meal Plan Photo"
+                    style="max-width:120px; margin-top:8px;">
+                {% endif %}
+                <small>Upload an image for your meal plan cover.</small>
+            </div>
+            <div class="form-group">
+                <label>Add Recipes to Your Meal Plan</label>
+                <div class="search-recipes-for-plan">
+                    <input type="text" id="searchRecipeInput" placeholder="Search recipes to add...">
+                    <button type="button" id="findRecipeBtn" class="add-item-btn">Find Recipe</button>
+                </div>
+                <div id="searchResultsContainer"
+                    style="margin-top:10px; max-height: 200px; overflow-y:auto; border:1px solid #eee; padding:5px; display:none;">
+                </div>
+                <label style="margin-top:15px; display:block;">Selected Recipes for this Meal Plan:</label>
+                <ul id="selectedRecipesList" class="selected-items-list">
+                    {% if edit_mode and mealplan and edit_selected_recipes %}
+                    {% for r in edit_selected_recipes %}
+                    <li data-recipe-id="{{ r.RecipeID }}">
+                        {{ r.RecipeName }}
+                        <input type="hidden" name="meal_plan_recipe_ids[]" value="{{ r.RecipeID }}">
+                        <button type="button" class="remove-from-plan-btn"
+                            onclick="removeRecipeFromPlan(this)">X</button>
+                    </li>
+                    {% endfor %}
+                    {% endif %}
+                </ul>
+                <small>Selected recipes will be shown with their own photos in the meal plan details.</small>
+            </div>
+            <button type="submit" class="submit-form-btn">{% if edit_mode and mealplan %}Update Meal Plan{% else
+                %}Submit Meal Plan{% endif %}</button>
+        </form>
+    </section>
+</main>
+<script>
+    var ingredientList = {{ ingredients|tojson|safe }};
+    var recipeList = {{ recipe_list|tojson|safe }};
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const showRecipeBtn = document.getElementById('showRecipeFormBtn');
+        const showMealPlanBtn = document.getElementById('showMealPlanFormBtn');
+        const recipeForm = document.getElementById('addRecipeForm');
+        const mealPlanForm = document.getElementById('addMealPlanForm');
+
+        if (showRecipeBtn && showMealPlanBtn && recipeForm && mealPlanForm) {
+            showRecipeBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                recipeForm.style.display = 'block';
+                recipeForm.classList.add('active-form');
+                mealPlanForm.style.display = 'none';
+                mealPlanForm.classList.remove('active-form');
+                showRecipeBtn.classList.add('active');
+                showMealPlanBtn.classList.remove('active');
+            });
+
+            showMealPlanBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                mealPlanForm.style.display = 'block';
+                mealPlanForm.classList.add('active-form');
+                recipeForm.style.display = 'none';
+                recipeForm.classList.remove('active-form');
+                showMealPlanBtn.classList.add('active');
+                showRecipeBtn.classList.remove('active');
+            });
+        }
+
+        // Ingredients
+        const ingredientsContainer = document.getElementById('ingredientsContainer');
+        const addIngredientBtn = document.getElementById('addIngredientBtn');
+
+        if (addIngredientBtn && ingredientsContainer) {
+            addIngredientBtn.addEventListener('click', function () {
+                const newItem = document.createElement('div');
+                newItem.classList.add('ingredient-item');
+                newItem.innerHTML = `
+            <input type="number" name="ingredient_quantity[]" placeholder="Quantity" min="0" step="any" class="input-qty" required>
+            <select name="ingredient_unit[]" class="input-unit" required>
+                <option value="" disabled selected>Unit</option>
+                {% for unit in units %}
+                <option value="{{ unit }}">{{ unit }}</option>
+                {% endfor %}
+            </select>
+            <div class="ingredient-search-wrapper" style="position:relative; flex-grow:1;">
+                <input type="text" class="ingredient-search-input" placeholder="Search Ingredient..." autocomplete="off" required>
+                <input type="hidden" name="ingredient_id[]" class="ingredient-id-hidden">
+                <div class="ingredient-search-results" style="position:absolute; top:100%; left:0; right:0; background:#fff; border:1px solid #ccc; z-index:10; display:none; max-height:150px; overflow-y:auto;"></div>
+            </div>
+            <button type="button" class="remove-item-btn" onclick="removeParentElement(this)">Remove</button>
+        `;
+                ingredientsContainer.appendChild(newItem);
+                // Ensure search works for new ingredient row
+                setupIngredientSearch(newItem.querySelector('.ingredient-search-wrapper'));
+            });
+        }
+
+        // Recipe Instructions
+        const instructionsContainer = document.getElementById('instructionsContainer');
+        const addInstructionBtn = document.getElementById('addInstructionBtn');
+        if (addInstructionBtn && instructionsContainer) {
+            addInstructionBtn.addEventListener('click', function () {
+                const stepNumber = instructionsContainer.children.length + 1;
+                const newStep = document.createElement('div');
+                newStep.classList.add('instruction-step');
+                newStep.innerHTML = `
+            <span class="step-number">Step ${stepNumber}</span>
+            <textarea name="instruction_text[]" rows="3" placeholder="Describe this step..." required></textarea>
+            <label class="step-photo-label">Upload Photo for this Step (Optional):</label>
+            <input type="file" name="instruction_image[]" accept="image/*" class="step-photo-input">
+            <button type="button" class="remove-item-btn" onclick="removeParentElement(this); renumberSteps();">Remove Step</button>
+        `;
+                instructionsContainer.appendChild(newStep);
+            });
+        }
+    });
+
+    function removeParentElement(button) {
+        if (button && button.parentElement) {
+            button.parentElement.remove();
+        }
+    }
+
+    function renumberSteps() {
+        const steps = document.querySelectorAll('#instructionsContainer .instruction-step');
+        if (steps) {
+            steps.forEach((step, index) => {
+                const stepNumberEl = step.querySelector('.step-number');
+                if (stepNumberEl) {
+                    stepNumberEl.textContent = `Step ${index + 1}`;
+                }
+            });
+        }
+    }
+
+    // Meal Plan - Recipe Search/Add
+    const findRecipeBtn = document.getElementById('findRecipeBtn');
+    const searchRecipeInput = document.getElementById('searchRecipeInput');
+    const searchResultsContainer = document.getElementById('searchResultsContainer');
+    const selectedRecipesList = document.getElementById('selectedRecipesList');
+
+    function showRecipeSearchResults() {
+        const searchTerm = searchRecipeInput.value.toLowerCase();
+        searchResultsContainer.innerHTML = '';
+        if (!searchTerm) {
+            searchResultsContainer.style.display = 'none';
+            return;
+        }
+        searchResultsContainer.style.display = 'block';
+        const filteredRecipes = recipeList.filter(recipe => recipe.RecipeName.toLowerCase().includes(searchTerm));
+        if (filteredRecipes.length > 0) {
+            filteredRecipes.forEach(recipe => {
+                const recipeDiv = document.createElement('div');
+                recipeDiv.classList.add('search-result-item');
+                recipeDiv.innerHTML = `<span>${recipe.RecipeName}</span><button type="button" class="add-to-plan-btn" data-recipe-id="${recipe.RecipeID}" data-recipe-name="${recipe.RecipeName}">Add to Plan</button>`;
+                searchResultsContainer.appendChild(recipeDiv);
+            });
+            document.querySelectorAll('.add-to-plan-btn').forEach(button => {
+                button.addEventListener('click', addRecipeToMealPlan);
+            });
+        } else {
+            searchResultsContainer.innerHTML = '<p>No recipes found.</p>';
+        }
+    }
+
+    if (searchRecipeInput && searchResultsContainer) {
+        searchRecipeInput.addEventListener('input', showRecipeSearchResults);
+        // Optionally, hide results when input loses focus
+        searchRecipeInput.addEventListener('blur', function () {
+            setTimeout(() => { searchResultsContainer.style.display = 'none'; }, 200);
+        });
+        searchRecipeInput.addEventListener('focus', showRecipeSearchResults);
+    }
+    if (findRecipeBtn) {
+        findRecipeBtn.style.display = 'none'; // Hide the button, not needed for live search
+    }
+
+    function addRecipeToMealPlan(event) {
+        const button = event.target;
+        const recipeId = button.dataset.recipeId;
+        const recipeName = button.dataset.recipeName;
+        if (selectedRecipesList && document.querySelector(`#selectedRecipesList li[data-recipe-id="${recipeId}"]`)) {
+            alert(`${recipeName} is already added to the plan.`);
+            return;
+        }
+        if (selectedRecipesList) {
+            const listItem = document.createElement('li');
+            listItem.dataset.recipeId = recipeId;
+            listItem.innerHTML = `${recipeName} <input type="hidden" name="meal_plan_recipe_ids[]" value="${recipeId}"><button type="button" class="remove-from-plan-btn" onclick="removeRecipeFromPlan(this)">X</button>`;
+            selectedRecipesList.appendChild(listItem);
+        }
+        if (searchResultsContainer) searchResultsContainer.style.display = 'none';
+        if (searchRecipeInput) searchRecipeInput.value = '';
+    }
+    function removeRecipeFromPlan(button) {
+        if (button && button.parentElement) {
+            button.parentElement.remove();
+        }
+    }
+
+    // Form Submission with Validations
+    const addRecipeForm = document.getElementById('addRecipeForm');
+    if (addRecipeForm) {
+        addRecipeForm.addEventListener('submit', function (e) {
+            const recipePhotoInput = document.getElementById('recipePhoto');
+            const recipePhoto = recipePhotoInput.value;
+            const recipeName = document.getElementById('recipeName').value;
+            const recipeDescription = document.getElementById('recipeDescription').value;
+            const ingredientsCount = document.querySelectorAll('#ingredientsContainer .ingredient-item').length;
+            const instructionsCount = document.querySelectorAll('#instructionsContainer .instruction-step').length;
+            const cookingTimeHours = parseInt(document.getElementById('cookingTimeHours').value) || 0;
+            const cookingTimeMinutes = parseInt(document.getElementById('cookingTimeMinutes').value) || 0;
+            const servings = document.getElementById('servings').value;
+            const recipeCategory = document.getElementById('recipeCategory').value;
+
+            let errorMessage = '';
+            // Only require photo if not in edit mode or if no current image exists
+            if (!isEditMode || (isEditMode && !hasCurrentImage)) {
+                if (!recipePhoto) errorMessage += '- Recipe Photo is required.\n';
+            }
+            if (recipeName.trim() === '') errorMessage += '- Recipe Name is required.\n';
+            if (recipeDescription.trim() === '') errorMessage += '- Description is required.\n';
+
+            if (ingredientsCount === 0) {
+                errorMessage += '- At least one ingredient is required.\n';
+            } else {
+                document.querySelectorAll('#ingredientsContainer .ingredient-item').forEach((item, index) => {
+                    if (!item.querySelector('.input-qty').value || parseFloat(item.querySelector('.input-qty').value) <= 0) errorMessage += `- Quantity for ingredient ${index + 1} must be a positive number.\n`;
+                    if (!item.querySelector('.input-unit').value) errorMessage += `- Unit for ingredient ${index + 1} is required.\n`;
+                    if (!item.querySelector('.ingredient-id-hidden').value) errorMessage += `- Ingredient Name for ingredient ${index + 1} is required.\n`;
+                });
+            }
+
+            if (cookingTimeHours < 0 || cookingTimeMinutes < 0 || (cookingTimeHours === 0 && cookingTimeMinutes === 0)) {
+                errorMessage += '- Cooking Time must be greater than 0 minutes.\n';
+            } else if (isNaN(cookingTimeHours) || isNaN(cookingTimeMinutes)) {
+                errorMessage += '- Cooking Time must be a valid number.\n';
+            }
+            if (servings.trim() === '' || parseInt(servings) <= 0) errorMessage += '- Servings must be a positive number.\n';
+            if (recipeCategory === '') errorMessage += '- Category is required.\n';
+
+            if (instructionsCount === 0) {
+                errorMessage += '- At least one instruction step is required.\n';
+            } else {
+                document.querySelectorAll('#instructionsContainer .instruction-step textarea').forEach((textarea, index) => {
+                    if (textarea.value.trim() === '') errorMessage += `- Text for instruction step ${index + 1} is required.\n`;
+                });
+            }
+
+            if (errorMessage !== '') {
+                e.preventDefault();
+                alert('Please correct the following errors:\n' + errorMessage);
+            } else {
+                alert('Recipe submitted successfully!');
+                // e.preventDefault(); // Uncomment to prevent actual submission for demo
+                // this.reset(); // Optionally reset the form
+            }
+        });
+    }
+
+    const addMealPlanForm = document.getElementById('addMealPlanForm');
+    if (addMealPlanForm) {
+        addMealPlanForm.addEventListener('submit', function (e) {
+            const selectedRecipes = document.querySelectorAll('#selectedRecipesList li');
+            if (selectedRecipes.length < 2) {
+                e.preventDefault();
+                alert('Please select at least 2 recipes for your meal plan.');
+                return;
+            }
+            if (document.getElementById('mealPlanName').value === '' || !document.getElementById('mealPlanPhoto').value) {
+                e.preventDefault();
+                alert('Please fill in Meal Plan Name and select a Meal Plan Photo.');
+            } else {
+                alert('Meal plan submitted successfully!');
+                // e.preventDefault(); // Uncomment to prevent actual submission for demo
+            }
+        });
+    }
+
+    // Ingredient search logic
+    function setupIngredientSearch(wrapper) {
+        const input = wrapper.querySelector('.ingredient-search-input');
+        const results = wrapper.querySelector('.ingredient-search-results');
+        const hidden = wrapper.querySelector('.ingredient-id-hidden');
+        if (!input || !results || !hidden) return;
+        input.addEventListener('input', function () {
+            const val = input.value.trim().toLowerCase();
+            if (!val) {
+                results.style.display = 'none';
+                results.innerHTML = '';
+                hidden.value = '';
+                return;
+            }
+            // Show only up to 8 matches for dropdown
+            const matches = ingredientList.filter(ing => ing.IngredientName.toLowerCase().includes(val)).slice(0, 8);
+            if (matches.length === 0) {
+                results.innerHTML = '<div style="padding:8px; color:#888;">No match</div>';
+                results.style.display = 'block';
+                hidden.value = '';
+                return;
+            }
+            results.innerHTML = matches.map(ing => `<div class="ingredient-result-item" data-id="${ing.IngredientID}" style="padding:8px; cursor:pointer;">${ing.IngredientName}</div>`).join('');
+            results.style.display = 'block';
+            Array.from(results.children).forEach(child => {
+                child.addEventListener('mousedown', function (e) {
+                    input.value = child.textContent;
+                    hidden.value = child.dataset.id;
+                    results.style.display = 'none';
+                });
+            });
+        });
+        input.addEventListener('focus', function () {
+            if (input.value.trim() !== '') {
+                input.dispatchEvent(new Event('input'));
+            }
+        });
+        input.addEventListener('blur', function () {
+            setTimeout(() => { results.style.display = 'none'; }, 200);
+        });
+    }
+
+    function setupAllIngredientSearches() {
+        document.querySelectorAll('.ingredient-search-wrapper').forEach(setupIngredientSearch);
+    }
+
+    // Initial setup
+    setupAllIngredientSearches();
+
+    // When adding a new ingredient row
+    if (addIngredientBtn && ingredientsContainer) {
+        addIngredientBtn.addEventListener('click', function () {
+            // ...existing code...
+            setupIngredientSearch(newItem.querySelector('.ingredient-search-wrapper'));
+        });
+    }
+</script>
+{% endblock %}

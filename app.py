@@ -1,39 +1,40 @@
-from flask import Flask, render_template
-from flask_sqlalchemy import SQLAlchemy
+# app.py
+from flask import Flask, session
 from config import Config
-import json
+from routes.auth import auth_bp
+from routes.recipe import recipe_bp, slugify
+from routes.main_page import main_page_bp
+from routes.meals import meals_bp
+from routes.pages import pages_bp
+from routes.add import add_bp  # Import the add blueprint
+from routes.profile import profile_bp  # Import the profile blueprint
+from routes.lists import lists_bp  # Import the lists blueprint
+from models import db
 
 app = Flask(__name__)
 app.config.from_object(Config)
 
-db = SQLAlchemy(app)
+db.init_app(app)
 
-# Model
-class Recipe(db.Model):
-    __tablename__ = 'recipe'
-    RecipeID = db.Column(db.Integer, primary_key=True)
-    RecipeName = db.Column(db.String(100), nullable=False)
-    Description = db.Column(db.Text)
-    CookingTime = db.Column(db.Integer)
-    RecipeCategory = db.Column(db.Enum('Appetizer','Main Course','Dessert','Salad','Soup','Snack','Beverage','Side Dish','Breakfast','Brunch'))
-    RecipeDate = db.Column(db.DateTime)
-    AddedByUserID = db.Column(db.Integer)
+# Register Blueprints
+app.register_blueprint(auth_bp)
+app.register_blueprint(recipe_bp)
+app.register_blueprint(main_page_bp)
+app.register_blueprint(meals_bp)
+app.register_blueprint(pages_bp)
+app.register_blueprint(add_bp)  # Register the add blueprint
+app.register_blueprint(profile_bp)  # Register the profile blueprint
+app.register_blueprint(lists_bp)  # Register the lists blueprint
 
-# Route
-@app.route('/')
-def recipe_list():
-    recipes = Recipe.query.all()
-    return render_template('recipe_list.html', recipes=recipes)
+app.jinja_env.globals.update(slugify=slugify)
 
-@app.route('/search')
-def search():
-    keyword = request.args.get('q', '')
-    cur = mysql.connection.cursor()
-    cur.execute("SELECT RecipeID, RecipeName FROM recipe WHERE RecipeName LIKE %s", ('%' + keyword + '%',))
-    results = cur.fetchall()
-    cur.close()
-    return jsonify(results)
-
+@app.context_processor
+def inject_user():
+    return {
+        'is_logged_in': 'user_id' in session,
+        'logged_in_username': session.get('username'),
+        'logged_in_user_type': session.get('user_type')
+    }
 
 if __name__ == '__main__':
     app.run(debug=True)

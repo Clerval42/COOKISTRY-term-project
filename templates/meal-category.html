@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}COOKISTRY - {{ category|upper }} MEAL PLANS{% endblock %}
+{% block content %}
+<main>
+    <section class="category-recipes-section">
+        <h2 class="section-title">{{ category|upper }} MEAL PLANS</h2>
+        <div class="recipes-list-grid">
+            {% if mealplans and mealplans|length > 0 %}
+                {% for plan in mealplans %}
+                <div class="recipe-card">
+                    <a href="{{ url_for('meals.meal_plan_detail', id=plan.PlanID) }}" class="recipe-preview-card mealplan-card" style="text-decoration:none;color:inherit;">
+                        <img src="{{ url_for('static', filename=plan.PlanImagePath) }}" alt="{{ plan.PlanName or plan.PlanID }}">
+                        <div class="recipe-info">
+                            <h3>{{ plan.PlanName or 'Meal Plan #' ~ plan.PlanID }}</h3>
+                            <span class="cook-time"><i class="far fa-calendar"></i> {{ plan.PlanDate.strftime('%Y-%m-%d') }}</span>
+                            <span class="mealplan-type"><strong>Type:</strong> {{ plan.PlanType }}</span>
+                        </div>
+                    </a>
+                    {% if logged_in_user_type == 'Admin' or plan.UserID == session['user_id'] %}
+                    <div class="item-actions">
+                        <a href="{{ url_for('add.edit_mealplan', plan_id=plan.PlanID) }}" class="btn btn-xs btn-primary">Edit</a>
+                        <form method="POST" action="{{ url_for('add.delete_mealplan', plan_id=plan.PlanID) }}" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this meal plan?');">
+                            <button type="submit" class="btn btn-xs btn-danger">Delete</button>
+                        </form>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            {% else %}
+                <p>No meal plans found for this category.</p>
+            {% endif %}
+        </div>
+    </section>
+</main>
+{% endblock %}
