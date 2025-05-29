@@ -1325,3 +1325,37 @@ add-form select,
         padding: 3px 7px;
     }
 }
+
+/* Edit Button */
+.edit-btn {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.2s;
+    margin-right: 85%;
+    position: relative;
+    
+}
+.edit-btn:hover {
+    background-color: #388e3c;
+}
+
+/* Delete Button */
+.delete-btn {
+    position: relative;
+    background-color: #f44336;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.2s;
+}
+.delete-btn:hover {
+    background-color: #b71c1c;
+}
